@@ -35,11 +35,33 @@ logging.basicConfig(
 )
 log = logging.getLogger("pam")
 
+BASE_DIR = os.path.dirname(__file__)
+
+
+def _resolve_frontend_root() -> str:
+    """
+    Resolve frontend directory across known project layouts.
+    Supports both `frontend/` and legacy misspelled `fronend/`.
+    """
+    candidates = [
+        os.path.join(BASE_DIR, "..", "frontend"),
+        os.path.join(BASE_DIR, "..", "fronend"),
+    ]
+    for candidate in candidates:
+        if os.path.isdir(candidate):
+            return candidate
+    return candidates[0]
+
+
+FRONTEND_ROOT = _resolve_frontend_root()
+STATIC_DIR = os.path.join(FRONTEND_ROOT, "static")
+TEMPLATE_DIR = os.path.join(FRONTEND_ROOT, "templates")
+
 app = Flask(
     __name__,
-    static_folder=os.path.join(os.path.dirname(__file__), "..", "frontend", "static"),
+    static_folder=STATIC_DIR,
     static_url_path="/static",
-    template_folder=os.path.join(os.path.dirname(__file__), "..", "frontend", "templates"),
+    template_folder=TEMPLATE_DIR,
 )
 CORS(app, resources={r"/api/*": {"origins": os.getenv("CORS_ORIGINS", "*")}})
 
@@ -353,8 +375,9 @@ def require_auth(*allowed_roles: str):
 @app.route("/")
 def index():
     """Serve the main SPA entry point."""
-    templates_dir = os.path.join(os.path.dirname(__file__), "..", "frontend", "templates")
-    return send_from_directory(templates_dir, "index.html")
+    if os.path.exists(os.path.join(TEMPLATE_DIR, "index.html")):
+        return send_from_directory(TEMPLATE_DIR, "index.html")
+    return send_from_directory(FRONTEND_ROOT, "index.html")
 
 
 # ── Health ────────────────────────────────────────────────────────────────────
