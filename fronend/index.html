@@ -61,6 +61,7 @@
         .modal-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .modal-footer { margin-top: 20px; text-align: center; color: #666; font-size: 0.9rem; }
         .modal-footer a { color: #1a2980; text-decoration: none; font-weight: 600; cursor: pointer; }
+        .modal-btn.secondary { background: linear-gradient(to right, #26a69a, #00897b); }
         .demo-login { margin-top: 25px; padding-top: 20px; border-top: 1px solid #e0e0e0; }
         .demo-login p { color: #666; font-size: 14px; margin-bottom: 10px; }
         .demo-users { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -312,9 +313,12 @@
             <span class="close-modal" onclick="closeModal('patientModal')">&times;</span>
         </div>
         <div class="modal-body">
+            <div class="form-group"><label>Full Name (for new account)</label><input type="text" id="patientName" placeholder="Enter your full name"></div>
             <div class="form-group"><label>Email Address</label><input type="email" id="patientEmail" value="patient1@example.com" placeholder="Enter email"></div>
             <div class="form-group"><label>Password</label><input type="password" id="patientPassword" value="password123" placeholder="Enter password"></div>
             <button class="modal-btn" id="patientLoginBtn" onclick="loginPatient()"><i class="fas fa-sign-in-alt"></i> Login to Patient Portal</button>
+            <button class="modal-btn secondary" id="patientRegisterBtn" onclick="registerPatient()"><i class="fas fa-user-plus"></i> Create Account as Patient</button>
+            <div class="modal-footer">New here? Enter your details and click <strong>Create Account as Patient</strong>.</div>
             <div class="demo-login">
                 <p><i class="fas fa-info-circle"></i> Demo accounts (password: password123):</p>
                 <div class="demo-users">
@@ -505,6 +509,27 @@ async function loginPatient() {
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Patient Portal';
+    }
+}
+
+async function registerPatient() {
+    const name     = document.getElementById("patientName").value.trim();
+    const email    = document.getElementById("patientEmail").value.trim();
+    const password = document.getElementById("patientPassword").value;
+    if (!email || !password) return notify("Email and password required", "error");
+    const btn = document.getElementById("patientRegisterBtn");
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
+    try {
+        const data = await api("POST", "/auth/patient/register", { email, password, name });
+        saveAuth(data.token, "patient", { email, name: name || email.split("@")[0], patient_id: null, role: "patient" });
+        closeAllModals();
+        notify("Account created successfully!");
+        setTimeout(showDashboard, 600);
+    } catch (e) {
+        notify(e.message, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account as Patient';
     }
 }
 
