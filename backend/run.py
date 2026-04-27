@@ -3,7 +3,7 @@ Patient Access Management & Analytics — Backend
 ================================================
 Single-file Flask + MongoDB backend.
 Author : Senior Backend Engineer
-Python : 3.10+
+Python : 3.8+
 Run    : python run.py   (dev)
          gunicorn run:app (prod)
 """
@@ -15,7 +15,7 @@ import re
 import logging
 import datetime
 from functools import wraps
-from typing import Any
+from typing import Any, Optional
 
 # ── Third-party ───────────────────────────────────────────────────────────────
 from dotenv import load_dotenv
@@ -80,7 +80,7 @@ cfg = Config()
 
 
 # ── MongoDB ───────────────────────────────────────────────────────────────────
-_client: MongoClient | None = None
+_client: Optional[MongoClient] = None
 
 
 def get_db():
