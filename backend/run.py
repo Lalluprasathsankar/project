@@ -640,8 +640,10 @@ def get_validator_reports():
     query: dict = {}
     if search:
         query["$or"] = [
-            {"name":       {"$regex": search, "$options": "i"}},
-            {"patient_id": {"$regex": search, "$options": "i"}},
+            {"name":          {"$regex": search, "$options": "i"}},
+            {"patient_id":    {"$regex": search, "$options": "i"}},
+            {"patient_email": {"$regex": search, "$options": "i"}},
+            {"email":         {"$regex": search, "$options": "i"}},
         ]
 
     total   = db.reports.count_documents(query)
@@ -751,8 +753,10 @@ def admin_reports():
         query["payment_status"] = {"$regex": f"^{status}$", "$options": "i"}
     if search:
         query["$or"] = [
-            {"name":       {"$regex": search, "$options": "i"}},
-            {"patient_id": {"$regex": search, "$options": "i"}},
+            {"name":          {"$regex": search, "$options": "i"}},
+            {"patient_id":    {"$regex": search, "$options": "i"}},
+            {"patient_email": {"$regex": search, "$options": "i"}},
+            {"email":         {"$regex": search, "$options": "i"}},
         ]
 
     total   = db.reports.count_documents(query)
