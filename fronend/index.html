@@ -913,7 +913,7 @@ function renderAdminTable(resp) {
             <td><span class="patient-pay"><i class="fas fa-user"></i> ${fmt(pay)}</span></td>
             <td><span class="status-badge"><i class="fas fa-check-circle"></i> Approved</span></td>
             <td>${r.approved_date||'-'}</td>
-            <td><button class="edit-btn" onclick="openEditModal('${r.patient_email}')"><i class="fas fa-edit"></i> Edit</button></td>
+            <td><button class="edit-btn" onclick="openAdminPatientDetails('${r.patient_email}')"><i class="fas fa-edit"></i> Edit</button></td>
         </tr>`;
     });
 
@@ -962,44 +962,62 @@ async function exportApproved() {
     window.location.href = `${API_BASE}/admin/export/csv`;
 }
 
-function openEditModal(patientEmail) {
+async function openAdminPatientDetails(patientEmail) {
     if (!patientEmail) return notify("Patient email not found", "error");
-    document.getElementById("editModalBody").innerHTML = `
-        <form id="editForm">
-            <div class="form-group"><label>Full Name</label><input type="text" id="eName" required></div>
-            <div class="form-group"><label>Age</label><input type="number" id="eAge" required></div>
-            <div class="form-group"><label>Marital Status</label>
-                <select id="eMarital"><option>Married</option><option>Single</option><option>Other</option></select>
-            </div>
-            <div class="form-group"><label>Diseases</label><textarea id="eDiseases" rows="2"></textarea></div>
-            <div class="form-group"><label>Address</label><textarea id="eAddress" rows="2"></textarea></div>
-            <div class="form-group"><label>Aadhar Number (12 digits)</label><input type="text" id="eAadhar" maxlength="12" required></div>
-            <div class="form-group"><label>PAN Number</label><input type="text" id="ePan" maxlength="10" required></div>
-            <div class="form-group"><label>Phone (10 digits)</label><input type="tel" id="ePhone" maxlength="10" required></div>
-            <div class="form-group"><label>Annual Income (₹)</label><input type="number" id="eIncome" min="0" required></div>
-            <p id="editEmailStore" style="display:none">${patientEmail}</p>
-            <div style="display:flex;gap:12px;margin-top:20px;">
-                <button type="button" class="modal-btn" onclick="saveEdit()"><i class="fas fa-save"></i> Save Changes</button>
-                <button type="button" class="modal-btn" style="background:#6c757d;" onclick="closeModal('editPatientModal')">Cancel</button>
-            </div>
-        </form>
-    `;
-    // Pre-fill by fetching patient data
-    api("GET", `/admin/reports?search=${encodeURIComponent(patientEmail)}&status=Approved`, null, AUTH.token).then(resp => {
+    setContent('<div class="loading-spinner"><i class="fas fa-spinner"></i><p style="margin-top:15px">Loading patient details...</p></div>');
+
+    try {
+        const resp = await api("GET", `/admin/reports?search=${encodeURIComponent(patientEmail)}&status=Approved`, null, AUTH.token);
         const r = (resp.reports||[]).find(x=>x.patient_email===patientEmail);
-        if (r) {
-            document.getElementById("eName").value    = r.name||"";
-            document.getElementById("eAge").value     = r.age||"";
-            document.getElementById("eMarital").value = r.marital_status||"Married";
-            document.getElementById("eDiseases").value= r.diseases||"";
-            document.getElementById("eAddress").value = r.address||"";
-            document.getElementById("eAadhar").value  = r.aadhar||"";
-            document.getElementById("ePan").value     = r.pan||"";
-            document.getElementById("ePhone").value   = r.phone||"";
-            document.getElementById("eIncome").value  = r.income||"";
-        }
-    });
-    document.getElementById("editPatientModal").style.display = "flex";
+        if (!r) return setContent('<div class="empty-state"><i class="fas fa-user-times"></i><p>Patient details not found</p></div>');
+
+        setContent(`
+            <div class="summary-card">
+                <div class="summary-header"><i class="fas fa-user-edit"></i><h2>Edit Patient Details</h2></div>
+                <div class="detail-row" style="margin-bottom:25px;">
+                    <div class="detail-item"><div class="detail-label">Patient Name</div><div class="detail-value">${r.name||'-'}</div></div>
+                    <div class="detail-item"><div class="detail-label">Patient ID</div><div class="detail-value">${r.patient_id||'-'}</div></div>
+                    <div class="detail-item"><div class="detail-label">Email</div><div class="detail-value">${r.patient_email||'-'}</div></div>
+                </div>
+                <form id="editForm">
+                    <div class="form-row">
+                        <div class="form-field"><label class="field-label required">Full Name</label><input class="field-input" type="text" id="eName" value="${r.name||''}" required></div>
+                        <div class="form-field"><label class="field-label required">Age</label><input class="field-input" type="number" id="eAge" value="${r.age||''}" required></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field"><label class="field-label required">Marital Status</label>
+                            <select class="field-input" id="eMarital">
+                                <option ${r.marital_status === "Married" ? "selected" : ""}>Married</option>
+                                <option ${r.marital_status === "Single" ? "selected" : ""}>Single</option>
+                                <option ${r.marital_status === "Other" ? "selected" : ""}>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-field"><label class="field-label required">Annual Income (₹)</label><input class="field-input" type="number" id="eIncome" min="0" value="${r.income||''}" required></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field"><label class="field-label required">Diseases</label><textarea class="field-input" id="eDiseases" rows="2">${r.diseases||''}</textarea></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field"><label class="field-label required">Address</label><textarea class="field-input" id="eAddress" rows="2">${r.address||''}</textarea></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field"><label class="field-label required">Aadhar Number</label><input class="field-input" type="text" id="eAadhar" maxlength="12" value="${r.aadhar||''}" required></div>
+                        <div class="form-field"><label class="field-label required">PAN Number</label><input class="field-input" type="text" id="ePan" maxlength="10" value="${r.pan||''}" required></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field"><label class="field-label required">Phone</label><input class="field-input" type="tel" id="ePhone" maxlength="10" value="${r.phone||''}" required></div>
+                    </div>
+                    <p id="editEmailStore" style="display:none">${patientEmail}</p>
+                    <div class="btn-row" style="border-top:none;padding-top:0;justify-content:flex-end;">
+                        <button type="button" class="btn-reset" onclick="renderAdminDashboard()"><i class="fas fa-arrow-left"></i> Back</button>
+                        <button type="button" class="btn-submit" onclick="saveEdit()"><i class="fas fa-save"></i> Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        `);
+    } catch (e) {
+        setContent(`<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>${e.message}</p></div>`);
+    }
 }
 
 async function saveEdit() {
@@ -1023,7 +1041,6 @@ async function saveEdit() {
             income:        document.getElementById("eIncome").value,
         }, AUTH.token);
         notify("Patient details updated successfully!");
-        closeModal("editPatientModal");
         renderAdminDashboard();
     } catch(e) { notify(e.message, "error"); }
 }
