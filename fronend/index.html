@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Access Management & Analytics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #1a2980, #26d0ce); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .container { width: 100%; max-width: 1200px; background: rgba(255,255,255,0.95); border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); overflow: hidden; animation: fadeIn 0.8s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        header { background: linear-gradient(to right, #1a2980, #26d0ce); color: white; padding: 30px; text-align: center; position: relative; overflow: hidden; }
+        .header-content { position: relative; z-index: 2; }
+        .logo { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 20px; }
+        .logo-icon { width: 80px; height: 80px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #1a2980; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .logo-text h1 { font-size: 2.4rem; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        .logo-text p { font-size: 1.1rem; opacity: 0.9; margin-top: 5px; }
+        .header-decoration { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 1; }
+        .circle { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.1); }
+        .circle:nth-child(1) { width: 100px; height: 100px; top: -30px; left: -30px; }
+        .circle:nth-child(2) { width: 150px; height: 150px; bottom: -50px; right: -50px; }
+        .main-content { padding: 40px; text-align: center; }
+        .welcome-section { margin-bottom: 50px; }
+        .welcome-section h2 { font-size: 2.2rem; color: #1a2980; margin-bottom: 15px; }
+        .welcome-section p { font-size: 1.1rem; color: #555; max-width: 800px; margin: 0 auto 30px; line-height: 1.6; }
+        .login-section h2 { font-size: 2rem; color: #1a2980; margin-bottom: 30px; }
+        .login-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; max-width: 1000px; margin: 0 auto; }
+        .login-btn { background: white; border: none; border-radius: 15px; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; overflow: hidden; }
+        .login-btn::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px; }
+        .btn-1::before { background: #1a2980; }
+        .btn-2::before { background: #26d0ce; }
+        .btn-3::before { background: #ff6b6b; }
+        .btn-4::before { background: #4CAF50; }
+        .login-btn:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.15); }
+        .btn-icon { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: white; margin-bottom: 20px; transition: transform 0.3s; }
+        .btn-1 .btn-icon { background: linear-gradient(135deg, #1a2980, #3a4cc0); }
+        .btn-2 .btn-icon { background: linear-gradient(135deg, #26d0ce, #2ae8e5); }
+        .btn-3 .btn-icon { background: linear-gradient(135deg, #ff6b6b, #ff8e53); }
+        .btn-4 .btn-icon { background: linear-gradient(135deg, #4CAF50, #66BB6A); }
+        .login-btn h3 { font-size: 1.4rem; color: #1a2980; margin-bottom: 10px; }
+        .btn-2 h3 { color: #26d0ce; }
+        .btn-3 h3 { color: #ff6b6b; }
+        .btn-4 h3 { color: #4CAF50; }
+        .login-btn p { color: #666; font-size: 0.9rem; text-align: center; line-height: 1.5; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: white; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-header { padding: 25px; background: linear-gradient(to right, #1a2980, #26d0ce); color: white; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 1.6rem; display: flex; align-items: center; gap: 10px; }
+        .close-modal { cursor: pointer; font-size: 1.8rem; transition: transform 0.2s; }
+        .close-modal:hover { transform: scale(1.2); }
+        .modal-body { padding: 30px; }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; color: #1a2980; font-weight: 600; font-size: 0.95rem; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem; transition: border-color 0.3s; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #1a2980; outline: none; box-shadow: 0 0 0 3px rgba(26,41,128,0.1); }
+        .modal-btn { width: 100%; padding: 15px; border: none; border-radius: 10px; background: linear-gradient(to right, #1a2980, #26d0ce); color: white; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .modal-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 15px rgba(26,41,128,0.3); }
+        .modal-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .modal-footer { margin-top: 20px; text-align: center; color: #666; font-size: 0.9rem; }
+        .modal-footer a { color: #1a2980; text-decoration: none; font-weight: 600; cursor: pointer; }
+        .demo-login { margin-top: 25px; padding-top: 20px; border-top: 1px solid #e0e0e0; }
+        .demo-login p { color: #666; font-size: 14px; margin-bottom: 10px; }
+        .demo-users { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .demo-user { background: #f5f5f5; padding: 10px; border-radius: 8px; font-size: 13px; color: #555; cursor: pointer; transition: 0.3s; }
+        .demo-user:hover { background: #e8e8e8; }
+        footer { background: #f8f9fa; padding: 25px; text-align: center; color: #666; border-top: 1px solid #e0e0e0; }
+        .footer-content { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: 0 auto; flex-wrap: wrap; gap: 15px; }
+        .footer-links { display: flex; gap: 20px; }
+        .footer-links a { color: #666; text-decoration: none; transition: color 0.3s; }
+        .footer-links a:hover { color: #1a2980; }
+        .system-info { background: #f1f8ff; border-radius: 10px; padding: 20px; margin-top: 30px; text-align: left; border-left: 5px solid #1a2980; }
+        .system-info h4 { color: #1a2980; margin-bottom: 10px; font-size: 1.2rem; }
+        .system-info p { color: #555; font-size: 0.95rem; line-height: 1.6; margin-bottom: 15px; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+        .info-item { display: flex; align-items: center; gap: 10px; }
+        .info-item i { color: #1a2980; font-size: 1.2rem; }
+        .notification { position: fixed; top: 20px; right: 20px; padding: 15px 25px; background: #4CAF50; color: white; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 9999; display: none; align-items: center; gap: 10px; animation: slideInRight 0.3s ease-out; max-width: 350px; }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+        .notification.error { background: #ff6b6b; }
+        .notification.info  { background: #26d0ce; }
+        .notification.warn  { background: #f39c12; }
+        /* ── Dashboard ─────────────────────────────────────────────────── */
+        .dashboard-page { width: 100%; min-height: 100vh; padding: 30px; background: linear-gradient(135deg, #1a2980, #26d0ce); display: none; }
+        .user-header { background: linear-gradient(135deg, #1a4b8c, #0d2d5a); color: white; padding: 25px 35px; border-radius: 20px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .avatar { width: 75px; height: 75px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 38px; color: #ffde7a; border: 3px solid #a3c6ff; }
+        .welcome-text h1 { font-size: 1.8rem; font-weight: 600; }
+        .welcome-text p  { font-size: 1rem; opacity: 0.9; margin-top: 5px; }
+        .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-header { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 10px 20px; border-radius: 30px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .btn-header:hover { background: white; color: #1a4b8c; }
+        .dashboard-content { background: white; border-radius: 20px; padding: 30px; }
+        /* ── Admin Report ─────────────────────────────────────────────── */
+        .report-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px; border-bottom: 3px solid #ffb347; padding-bottom: 15px; }
+        .report-header h2 { font-size: 1.8rem; color: #1e2b3a; display: flex; align-items: center; gap: 10px; }
+        .info-text { background: #fff3cd; color: #856404; padding: 10px 15px; border-radius: 8px; margin: 10px 0; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+        .summary-stats { display: flex; gap: 15px; margin: 20px 0; flex-wrap: wrap; }
+        .stat-box { background: #f0f7ff; border-radius: 12px; padding: 18px; flex: 1; min-width: 160px; border-left: 5px solid #ffb347; }
+        .stat-box .label { color: #4a5f7a; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
+        .stat-box .value { font-size: 1.8rem; font-weight: 700; color: #1e2b3a; }
+        .filter-section { margin: 20px 0; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+        .search-box { display: flex; background: white; border-radius: 60px; border: 2px solid #c0d0e0; overflow: hidden; max-width: 380px; flex: 1; }
+        .search-box input { flex: 1; border: none; padding: 14px 20px; font-size: 1rem; outline: none; background: transparent; }
+        .search-box button { background: #2c3e50; border: none; color: white; padding: 0 24px; cursor: pointer; font-size: 1.1rem; }
+        .filter-badge { background: #27ae60; color: white; padding: 10px 18px; border-radius: 50px; font-weight: 600; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+        .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #d0e0f0; background: white; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; min-width: 750px; }
+        th { background: #2c3e50; color: white; padding: 16px 14px; font-size: 1rem; text-align: left; }
+        td { padding: 15px 14px; border-bottom: 1px solid #e0eaf5; color: #1e2b3a; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f0f8ff; }
+        .patient-name-cell { font-weight: 600; color: #1e3c5a; }
+        .bill-amount    { font-weight: 700; color: #27ae60; }
+        .ins-amount     { font-weight: 700; color: #2980b9; background: #e8f0fe; padding: 5px 10px; border-radius: 20px; display: inline-block; font-size: 0.95rem; }
+        .disc-badge     { background: #f39c12; color: white; padding: 3px 8px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; margin-left: 8px; }
+        .patient-pay    { font-weight: 600; color: #e67e22; }
+        .status-badge   { background: #27ae60; color: white; padding: 5px 12px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; }
+        .edit-btn       { background: #ffc107; color: #333; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: 0.2s; }
+        .edit-btn:hover { background: #e0a800; }
+        .export-btn     { background: #2c3e50; color: white; border: none; padding: 12px 22px; border-radius: 50px; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 15px; transition: 0.2s; }
+        .export-btn:hover { background: #1e2b3a; }
+        /* ── Validator ────────────────────────────────────────────────── */
+        .validator-grid { display: grid; grid-template-columns: 360px 1fr; gap: 25px; }
+        .left-panel { background: #f8fbff; border-radius: 20px; padding: 25px 18px; border: 1px solid #c5d8f5; height: fit-content; }
+        .right-panel { background: #f8fbff; border-radius: 20px; padding: 28px; border: 1px solid #c5d8f5; }
+        .panel-title { font-size: 1.3rem; font-weight: 700; color: #1a4b8c; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+        .report-list { max-height: 450px; overflow-y: auto; }
+        .report-item { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); border: 1px solid #d5e4ff; cursor: pointer; transition: 0.15s; }
+        .report-item:hover, .report-item.active { background: #ecf5ff; border-color: #2f7eff; transform: translateY(-2px); }
+        .report-avatar { background: #dbeafe; width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center; color: #1d4db0; font-size: 22px; flex-shrink: 0; }
+        .report-info .r-name { font-weight: 700; color: #102a4c; }
+        .report-info .r-meta { font-size: 0.8rem; color: #3b5f9e; margin-top: 3px; display: flex; gap: 8px; }
+        .r-meta span { background: #e2edff; padding: 2px 10px; border-radius: 30px; }
+        .detail-header { display: flex; justify-content: space-between; align-items: center; background: #edf4ff; padding: 20px; border-radius: 18px; margin-bottom: 22px; flex-wrap: wrap; gap: 10px; }
+        .patient-badge { display: flex; align-items: center; gap: 15px; }
+        .patient-icon { background: #1d4db0; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+        .patient-name-detail h2 { font-size: 1.6rem; color: #08203b; }
+        .patient-name-detail p  { color: #3466a8; font-size: 0.9rem; }
+        .v-badge { color: white; padding: 10px 20px; border-radius: 40px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .v-badge.approved { background: #0f8130; }
+        .v-badge.rejected { background: #b43b3b; }
+        .v-badge.pending  { background: #ffc107; color: #1e3b77; }
+        .info-boxes { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
+        .info-box { background: white; border-radius: 18px; padding: 18px; border: 1px solid #cedfff; }
+        .info-box-title { color: #15458f; font-weight: 600; margin-bottom: 14px; font-size: 1.1rem; display: flex; gap: 8px; border-bottom: 2px solid #bbd4ff; padding-bottom: 10px; }
+        .info-row { display: flex; padding: 8px 0; border-bottom: 1px dashed #d0e0f0; font-size: 0.9rem; }
+        .info-row:last-child { border-bottom: none; }
+        .i-label { width: 120px; font-weight: 600; color: #1c3d6b; flex-shrink: 0; }
+        .i-value { flex: 1; color: #181818; word-break: break-word; }
+        .action-buttons { display: flex; gap: 15px; margin-top: 25px; flex-wrap: wrap; }
+        .approve-btn, .reject-btn { flex: 1 1 180px; border: none; padding: 16px 28px; border-radius: 50px; font-size: 1.1rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; }
+        .approve-btn { background: #0f8130; color: white; }
+        .approve-btn:hover:not(:disabled) { background: #0a6826; transform: scale(1.02); }
+        .reject-btn  { background: #b43b3b; color: white; }
+        .reject-btn:hover:not(:disabled)  { background: #942f2f; transform: scale(1.02); }
+        .approve-btn:disabled, .reject-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        /* ── Patient Status ──────────────────────────────────────────── */
+        .progress-container { background: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; border: 1px solid #e3f2fd; }
+        .progress-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: #0d47a1; }
+        .progress-header h3 { font-size: 1.4rem; font-weight: 600; }
+        .progress-steps { display: flex; justify-content: space-between; align-items: flex-start; position: relative; margin: 30px 0 20px; }
+        .progress-line { position: absolute; top: 25px; left: 0; right: 0; height: 3px; background: #bbdefb; z-index: 1; }
+        .progress-line-fill { height: 100%; background: #1a73e8; transition: width 0.5s; }
+        .progress-step { flex: 1; text-align: center; position: relative; z-index: 2; }
+        .step-indicator { width: 50px; height: 50px; background: white; border: 3px solid #bbdefb; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-size: 18px; color: #666; transition: all 0.3s; }
+        .progress-step.completed .step-indicator { background: #43a047; border-color: #43a047; color: white; }
+        .progress-step.active    .step-indicator { background: #1a73e8; border-color: #1a73e8; color: white; box-shadow: 0 0 0 5px rgba(26,115,232,0.2); }
+        .progress-step.rejected  .step-indicator { background: #dc3545; border-color: #dc3545; color: white; }
+        .step-label { font-weight: 600; color: #333; font-size: 0.9rem; }
+        .step-date  { font-size: 11px; color: #666; margin-top: 3px; }
+        .summary-card { background: white; border-radius: 20px; padding: 25px; border: 1px solid #d7e5ff; margin-bottom: 20px; }
+        .summary-header { display: flex; align-items: center; gap: 15px; border-bottom: 2px solid #e3efff; padding-bottom: 15px; margin-bottom: 20px; }
+        .summary-header i { font-size: 28px; background: #1a4b8c; color: white; padding: 12px; border-radius: 15px; }
+        .summary-header h2 { color: #132e51; font-size: 1.6rem; }
+        .detail-row { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 15px; }
+        .detail-item { flex: 1 1 220px; }
+        .detail-label { color: #3f5e82; font-weight: 600; margin-bottom: 4px; font-size: 0.9rem; }
+        .detail-value { font-size: 1.1rem; font-weight: 500; color: #102b47; }
+        /* ── Patient Form ─────────────────────────────────────────────── */
+        .form-container { background: white; border-radius: 15px; overflow: hidden; }
+        .form-header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 22px 28px; display: flex; align-items: center; gap: 15px; }
+        .form-logo { width: 70px; height: 70px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #1a73e8; font-size: 32px; }
+        .form-clinic h1 { font-size: 1.8rem; }
+        .form-clinic p  { opacity: 0.9; }
+        .form-section { margin-bottom: 30px; border-radius: 10px; overflow: hidden; border: 1px solid #e3f2fd; }
+        .section-header { background: linear-gradient(to right, #e3f2fd, #bbdefb); color: #0d47a1; padding: 16px 22px; display: flex; align-items: center; gap: 10px; font-size: 1.2rem; font-weight: 600; }
+        .section-content { padding: 22px; background: #fafdff; }
+        .form-row { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 18px; }
+        .form-field { flex: 1 1 280px; }
+        label.field-label { display: block; margin-bottom: 7px; font-weight: 600; color: #1565c0; font-size: 0.9rem; }
+        .required::after { content: " *"; color: #d32f2f; }
+        .field-input { width: 100%; padding: 13px 15px; border: 1px solid #bbdefb; border-radius: 8px; font-size: 0.95rem; transition: all 0.3s; background: white; }
+        .field-input:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 0 3px rgba(26,115,232,0.15); }
+        .field-input.error { border-color: #dc3545; background: #fff8f8; }
+        .error-msg { color: #dc3545; font-size: 11px; margin-top: 3px; display: block; }
+        .id-row { display: flex; gap: 10px; align-items: center; }
+        .gen-btn { background: #1a73e8; color: white; border: none; border-radius: 6px; padding: 12px 16px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+        .bill-breakdown { background: #f0f8ff; border-radius: 10px; padding: 18px; }
+        .bill-total-row { background: linear-gradient(to right, #e3f2fd, #c8e6f1); padding: 14px 18px; border-radius: 8px; margin-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; font-weight: 600; color: #0d47a1; }
+        .calc-btn { background: linear-gradient(to right, #6a1b9a, #4a148c); color: white; border: none; border-radius: 6px; padding: 11px 20px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; }
+        .btn-row { display: flex; justify-content: center; gap: 20px; margin-top: 35px; padding-top: 25px; border-top: 1px solid #e3f2fd; }
+        .btn-submit { background: linear-gradient(to right, #1a73e8, #0d47a1); color: white; border: none; border-radius: 8px; padding: 15px 32px; font-size: 1.1rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; min-width: 200px; justify-content: center; transition: 0.3s; }
+        .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(26,115,232,0.3); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-reset  { background: linear-gradient(to right, #f4511e, #d84315); color: white; border: none; border-radius: 8px; padding: 15px 32px; font-size: 1.1rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
+        .success-banner { background: linear-gradient(135deg, #43a047, #2e7d32); color: white; padding: 18px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-size: 1.3rem; font-weight: 600; display: none; }
+        /* ── Analytics ────────────────────────────────────────────────── */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .kpi-card { background: linear-gradient(135deg, #f8faff, #fff); border-radius: 18px; padding: 18px; text-align: center; border: 1px solid #e2edff; }
+        .kpi-value { font-size: 2rem; font-weight: 800; color: #1a4b8c; }
+        .kpi-label { color: #5a6e8a; font-weight: 500; margin-top: 6px; font-size: 0.85rem; }
+        .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin: 25px 0; }
+        .chart-box { background: white; border-radius: 18px; padding: 18px; border: 1px solid #e0ecff; }
+        .chart-title { font-size: 1.1rem; font-weight: 600; color: #1e2b3a; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        canvas { max-height: 250px; width: 100%; }
+        .insights-list { list-style: none; }
+        .insights-list li { padding: 9px 0; border-bottom: 1px solid #e0eaff; display: flex; justify-content: space-between; font-size: 0.95rem; }
+        /* ── Edit modal ───────────────────────────────────────────────── */
+        .edit-modal .modal-content { max-width: 680px; }
+        .edit-modal .modal-body { max-height: 70vh; overflow-y: auto; }
+        /* ── Loading ─────────────────────────────────────────────────── */
+        .loading-spinner { text-align: center; padding: 60px; color: #1a4b8c; }
+        .loading-spinner i { font-size: 3rem; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty-state { text-align: center; padding: 60px 30px; color: #7f8c8d; }
+        .empty-state i { font-size: 70px; color: #b0c4de; margin-bottom: 15px; display: block; }
+        @media (max-width: 1024px) { .login-buttons { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .login-buttons { grid-template-columns: 1fr; } .validator-grid { grid-template-columns: 1fr; } .info-boxes { grid-template-columns: 1fr; } .charts-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════ LANDING PAGE ══════════════════════════════ -->
+<div id="landingPage" class="container">
+    <header>
+        <div class="header-decoration"><div class="circle"></div><div class="circle"></div></div>
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-hospital-user"></i></div>
+                <div class="logo-text">
+                    <h1>Patient Access Management &amp; Analytics</h1>
+                    <p>Secure Access Portal for Healthcare Management</p>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div class="main-content">
+        <div class="welcome-section">
+            <h2>Welcome to Healthcare Access Portal</h2>
+            <p>Our secure platform provides dedicated access points for patients, validators, administrators, and data analysts to manage healthcare access and analytics efficiently.</p>
+            <div class="system-info">
+                <h4><i class="fas fa-info-circle"></i> System Overview</h4>
+                <p>Four distinct roles with JWT-secured endpoints backed by MongoDB.</p>
+                <div class="info-grid">
+                    <div class="info-item"><i class="fas fa-user-injured"></i><span>Patient Access Portal</span></div>
+                    <div class="info-item"><i class="fas fa-user-check"></i><span>Validator Authentication</span></div>
+                    <div class="info-item"><i class="fas fa-user-shield"></i><span>Administrative Control</span></div>
+                    <div class="info-item"><i class="fas fa-chart-bar"></i><span>Patient Data Analyst</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="login-section">
+            <h2>Access Your Dashboard</h2>
+            <div class="login-buttons">
+                <button class="login-btn btn-1" onclick="showModal('patientModal')">
+                    <div class="btn-icon"><i class="fas fa-user-injured"></i></div>
+                    <h3>Patient Login</h3>
+                    <p>Access personal health records and submit applications</p>
+                </button>
+                <button class="login-btn btn-2" onclick="showModal('validatorModal')">
+                    <div class="btn-icon"><i class="fas fa-user-check"></i></div>
+                    <h3>Validator Login</h3>
+                    <p>Verify patient credentials and review applications</p>
+                </button>
+                <button class="login-btn btn-3" onclick="showModal('adminModal')">
+                    <div class="btn-icon"><i class="fas fa-user-shield"></i></div>
+                    <h3>Admin Login</h3>
+                    <p>Manage approved claims and patient records</p>
+                </button>
+                <button class="login-btn btn-4" onclick="showModal('analystModal')">
+                    <div class="btn-icon"><i class="fas fa-chart-bar"></i></div>
+                    <h3>Data Analyst</h3>
+                    <p>Access analytics dashboard and export reports</p>
+                </button>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div class="footer-content">
+            <div class="copyright">
+                <p>&copy; 2024 Patient Access Management System. All rights reserved.</p>
+                <p>Version 4.0.0 | Flask + MongoDB Backend</p>
+            </div>
+            <div class="footer-links">
+                <a href="#"><i class="fas fa-shield-alt"></i> Privacy Policy</a>
+                <a href="#"><i class="fas fa-file-contract"></i> Terms</a>
+                <a href="#"><i class="fas fa-question-circle"></i> Help</a>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<!-- ═══════════════════════════════ MODALS ════════════════════════════════════ -->
+<!-- Patient -->
+<div id="patientModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-injured"></i> Patient Login</h3>
+            <span class="close-modal" onclick="closeModal('patientModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group"><label>Email Address</label><input type="email" id="patientEmail" value="patient1@example.com" placeholder="Enter email"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="patientPassword" value="password123" placeholder="Enter password"></div>
+            <button class="modal-btn" id="patientLoginBtn" onclick="loginPatient()"><i class="fas fa-sign-in-alt"></i> Login to Patient Portal</button>
+            <div class="demo-login">
+                <p><i class="fas fa-info-circle"></i> Demo accounts (password: password123):</p>
+                <div class="demo-users">
+                    <div class="demo-user" onclick="fillLogin('patientEmail','patient1@example.com')"><i class="fas fa-user"></i> patient1@example.com<br><small>New user</small></div>
+                    <div class="demo-user" onclick="fillLogin('patientEmail','patient2@example.com')"><i class="fas fa-user"></i> patient2@example.com<br><small>Submitted</small></div>
+                    <div class="demo-user" onclick="fillLogin('patientEmail','patient3@example.com')"><i class="fas fa-user"></i> patient3@example.com<br><small>Under review</small></div>
+                    <div class="demo-user" onclick="fillLogin('patientEmail','patient4@example.com')"><i class="fas fa-user"></i> patient4@example.com<br><small>Approved</small></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Validator -->
+<div id="validatorModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header" style="background: linear-gradient(to right,#0b5f9e,#26d0ce);">
+            <h3><i class="fas fa-user-check"></i> Validator Login</h3>
+            <span class="close-modal" onclick="closeModal('validatorModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group"><label>Validator ID</label><input type="text" id="validatorId" value="VAL001" placeholder="e.g. VAL001"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="validatorPassword" value="password123" placeholder="Password"></div>
+            <button class="modal-btn" style="background:linear-gradient(to right,#0b5f9e,#26d0ce);" id="validatorLoginBtn" onclick="loginValidator()"><i class="fas fa-sign-in-alt"></i> Login as Validator</button>
+            <div class="demo-login"><p><i class="fas fa-info-circle"></i> Demo: VAL001 / password123</p></div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin -->
+<div id="adminModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header" style="background: linear-gradient(to right,#c0392b,#e74c3c);">
+            <h3><i class="fas fa-user-shield"></i> Administrator Login</h3>
+            <span class="close-modal" onclick="closeModal('adminModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group"><label>Username</label><input type="text" id="adminUsername" value="admin" placeholder="Admin username"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="adminPassword" value="admin123" placeholder="Admin password"></div>
+            <button class="modal-btn" style="background:linear-gradient(to right,#c0392b,#e74c3c);" id="adminLoginBtn" onclick="loginAdmin()"><i class="fas fa-sign-in-alt"></i> Login as Administrator</button>
+            <div class="demo-login"><p><i class="fas fa-info-circle"></i> Demo: admin / admin123</p></div>
+        </div>
+    </div>
+</div>
+
+<!-- Analyst — same as Admin but opens dashboard -->
+<div id="analystModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header" style="background: linear-gradient(to right,#2c3e50,#1e2b3a);">
+            <h3><i class="fas fa-chart-bar"></i> Analyst / Admin Login</h3>
+            <span class="close-modal" onclick="closeModal('analystModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group"><label>Username</label><input type="text" id="analystUsername" value="admin" placeholder="Admin username"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="analystPassword" value="admin123" placeholder="Admin password"></div>
+            <button class="modal-btn" style="background:linear-gradient(to right,#2c3e50,#1e2b3a);" id="analystLoginBtn" onclick="loginAnalyst()"><i class="fas fa-sign-in-alt"></i> Open Analytics Dashboard</button>
+            <div class="demo-login"><p><i class="fas fa-info-circle"></i> Demo: admin / admin123</p></div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Patient Modal (Admin) -->
+<div id="editPatientModal" class="modal edit-modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3><i class="fas fa-user-edit"></i> Edit Patient Details</h3><span class="close-modal" onclick="closeModal('editPatientModal')">&times;</span></div>
+        <div class="modal-body" id="editModalBody"></div>
+    </div>
+</div>
+
+<!-- ══════════════════════════ DASHBOARD PAGE ════════════════════════════════ -->
+<div id="dashboardPage" class="dashboard-page">
+    <div class="user-header">
+        <div class="user-info">
+            <div class="avatar"><i class="fas fa-user-circle"></i></div>
+            <div class="welcome-text">
+                <h1 id="welcomeName">Welcome</h1>
+                <p><i class="fas fa-id-card"></i> <span id="userIDDisplay"></span> &nbsp;·&nbsp; <i class="fas fa-envelope"></i> <span id="userEmailDisplay"></span></p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-header" onclick="goToLanding()"><i class="fas fa-home"></i> Home</button>
+            <button class="btn-header" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </div>
+    <div class="dashboard-content" id="dynamicContent">
+        <div class="loading-spinner"><i class="fas fa-spinner"></i><p style="margin-top:15px">Loading...</p></div>
+    </div>
+</div>
+
+<!-- Notification -->
+<div id="notification" class="notification"><i class="fas fa-check-circle"></i><span id="notifText">Done!</span></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// API LAYER — all calls go through here
+// ═══════════════════════════════════════════════════════════════════════════
+const API_BASE = "/api";
+
+async function api(method, path, body, token) {
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    const res = await fetch(API_BASE + path, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Request failed");
+    return data.data;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+let AUTH = {
+    token: sessionStorage.getItem("pam_token"),
+    role:  sessionStorage.getItem("pam_role"),
+    user:  JSON.parse(sessionStorage.getItem("pam_user") || "null"),
+};
+let monthlyChart, statusChart, deptChart;
+let currentReportId = null;
+
+function saveAuth(token, role, user) {
+    AUTH = { token, role, user };
+    sessionStorage.setItem("pam_token",  token);
+    sessionStorage.setItem("pam_role",   role);
+    sessionStorage.setItem("pam_user",   JSON.stringify(user));
+}
+
+function clearAuth() {
+    AUTH = { token: null, role: null, user: null };
+    sessionStorage.removeItem("pam_token");
+    sessionStorage.removeItem("pam_role");
+    sessionStorage.removeItem("pam_user");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════════════════
+function showLanding()   { document.getElementById("landingPage").style.display = "block";  document.getElementById("dashboardPage").style.display = "none";  closeAllModals(); }
+function showDashboard() { document.getElementById("landingPage").style.display = "none";   document.getElementById("dashboardPage").style.display = "block"; loadDashboard(); }
+function goToLanding()   { clearAuth(); showLanding(); }
+function handleLogout()  { clearAuth(); showLanding(); notify("Logged out successfully", "info"); }
+
+function loadDashboard() {
+    const user  = AUTH.user || {};
+    const role  = AUTH.role;
+    const email = user.email || user.username || user.validator_id || "";
+
+    document.getElementById("welcomeName").textContent    = `Welcome, ${user.name || user.username || user.validator_id || "User"}`;
+    document.getElementById("userEmailDisplay").textContent = email;
+    document.getElementById("userIDDisplay").textContent  =
+        role === "admin"     ? "Administrator" :
+        role === "validator" ? `Validator — ${user.validator_id || ""}` :
+        user.patient_id      ? user.patient_id : "ID pending";
+
+    if (role === "admin")     renderAdminDashboard();
+    else if (role === "validator") renderValidatorDashboard();
+    else                      renderPatientDashboard();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════════════════
+function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.disabled = loading;
+    btn.innerHTML = loading
+        ? '<i class="fas fa-spinner fa-spin"></i> Please wait...'
+        : btn.dataset.original || btn.innerHTML;
+}
+
+async function loginPatient() {
+    const email    = document.getElementById("patientEmail").value.trim();
+    const password = document.getElementById("patientPassword").value;
+    if (!email || !password) return notify("Email and password required", "error");
+    const btn = document.getElementById("patientLoginBtn");
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+    try {
+        const data = await api("POST", "/auth/patient/login", { email, password });
+        saveAuth(data.token, "patient", data.user);
+        closeAllModals();
+        notify(`Welcome ${data.user.name || email}!`);
+        setTimeout(showDashboard, 600);
+    } catch (e) {
+        notify(e.message, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Patient Portal';
+    }
+}
+
+async function loginValidator() {
+    const vid = document.getElementById("validatorId").value.trim();
+    const pwd = document.getElementById("validatorPassword").value;
+    if (!vid || !pwd) return notify("Validator ID and password required", "error");
+    const btn = document.getElementById("validatorLoginBtn");
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+    try {
+        const data = await api("POST", "/auth/validator/login", { validator_id: vid, password: pwd });
+        saveAuth(data.token, "validator", data.user);
+        closeAllModals();
+        notify("Validator access granted");
+        setTimeout(showDashboard, 600);
+    } catch (e) {
+        notify(e.message, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login as Validator';
+    }
+}
+
+async function loginAdmin() {
+    const username = document.getElementById("adminUsername").value.trim();
+    const password = document.getElementById("adminPassword").value;
+    if (!username || !password) return notify("Username and password required", "error");
+    const btn = document.getElementById("adminLoginBtn");
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+    try {
+        const data = await api("POST", "/auth/admin/login", { username, password });
+        saveAuth(data.token, "admin", data.user);
+        closeAllModals();
+        notify("Admin login successful!");
+        setTimeout(showDashboard, 600);
+    } catch (e) {
+        notify(e.message, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login as Administrator';
+    }
+}
+
+async function loginAnalyst() {
+    const username = document.getElementById("analystUsername").value.trim();
+    const password = document.getElementById("analystPassword").value;
+    if (!username || !password) return notify("Username and password required", "error");
+    const btn = document.getElementById("analystLoginBtn");
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    try {
+        const data = await api("POST", "/auth/admin/login", { username, password });
+        saveAuth(data.token, "admin", data.user);
+        closeAllModals();
+        notify("Analytics dashboard loaded!");
+        setTimeout(() => { showDashboard(); renderAnalyticsDashboard(); }, 600);
+    } catch (e) {
+        notify(e.message, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Open Analytics Dashboard';
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PATIENT DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════
+async function renderPatientDashboard() {
+    setContent('<div class="loading-spinner"><i class="fas fa-spinner"></i><p style="margin-top:15px">Loading your application...</p></div>');
+    try {
+        const patient = await api("GET", "/patients/me", null, AUTH.token);
+        if (!patient || patient.stage === "new") {
+            renderApplicationForm();
+        } else {
+            renderStatusPage(patient);
+        }
+    } catch (e) {
+        renderApplicationForm();
+    }
+}
+
+function renderStatusPage(p) {
+    const stages   = { submitted: 33, review: 66, approved: 100, rejected: 100 };
+    const fillPct  = stages[p.stage] || 33;
+    const fillColor = p.stage === "rejected" ? "#dc3545" : "#1a73e8";
+
+    const stepClass = (s) => {
+        if (p.stage === "rejected" && s === "review") return "rejected";
+        if (p.stage === s) return "active";
+        const order = ["submitted","review","approved"];
+        return order.indexOf(p.stage) > order.indexOf(s) ? "completed" : "";
+    };
+
+    const statusHtml = p.stage === "approved"
+        ? `<div style="display:inline-flex;align-items:center;gap:10px;background:#2e7d32;color:white;padding:12px 24px;border-radius:50px;"><i class="fas fa-check-circle"></i><span style="font-size:1.2rem;font-weight:600;">Application Approved</span></div>`
+        : p.stage === "rejected"
+        ? `<div style="display:inline-flex;align-items:center;gap:10px;background:#dc3545;color:white;padding:12px 24px;border-radius:50px;"><i class="fas fa-times-circle"></i><span style="font-size:1.2rem;font-weight:600;">Application Rejected</span></div>`
+        : p.stage === "review"
+        ? `<div style="display:inline-flex;align-items:center;gap:10px;background:#ff9800;color:white;padding:12px 24px;border-radius:50px;"><i class="fas fa-clock"></i><span style="font-size:1.2rem;font-weight:600;">Under Review</span></div>`
+        : `<div style="display:inline-flex;align-items:center;gap:10px;background:#ff9800;color:white;padding:12px 24px;border-radius:50px;"><i class="fas fa-check-circle"></i><span style="font-size:1.2rem;font-weight:600;">Application Submitted</span></div>`;
+
+    setContent(`
+        <div class="progress-container">
+            <div class="progress-header"><i class="fas fa-chart-line"></i><h3>Application Status</h3></div>
+            <div class="progress-steps">
+                <div class="progress-line"><div class="progress-line-fill" style="width:${fillPct}%;background:${fillColor}"></div></div>
+                <div class="progress-step ${stepClass('submitted')}">
+                    <div class="step-indicator"><i class="fas fa-check"></i></div>
+                    <div class="step-label">Submitted</div>
+                    <div class="step-date">${p.submitted_date||'-'}</div>
+                </div>
+                <div class="progress-step ${stepClass('review')}">
+                    <div class="step-indicator"><i class="fas fa-${p.stage==='rejected'?'times':'clock'}"></i></div>
+                    <div class="step-label">${p.stage==='rejected'?'Rejected':'Under Review'}</div>
+                    <div class="step-date">${p.review_date||p.rejected_date||'-'}</div>
+                </div>
+                <div class="progress-step ${stepClass('approved')}">
+                    <div class="step-indicator"><i class="fas fa-check-circle"></i></div>
+                    <div class="step-label">Approved</div>
+                    <div class="step-date">${p.approved_date||'-'}</div>
+                </div>
+            </div>
+            <div style="text-align:center;margin-top:20px;">${statusHtml}</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-header"><i class="fas fa-file-invoice"></i><h2>Application Details</h2></div>
+            <div class="detail-row">
+                <div class="detail-item"><div class="detail-label">Patient Name</div><div class="detail-value">${p.name||'-'}</div></div>
+                <div class="detail-item"><div class="detail-label">Patient ID</div><div class="detail-value">${p.patient_id||'-'}</div></div>
+                <div class="detail-item"><div class="detail-label">Submitted On</div><div class="detail-value">${p.submitted_date||'-'}</div></div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-item"><div class="detail-label">Hospital</div><div class="detail-value">${p.hospital||p.hospital_name||'-'}</div></div>
+                <div class="detail-item"><div class="detail-label">Doctor</div><div class="detail-value">${p.doctor||'-'}</div></div>
+                <div class="detail-item"><div class="detail-label">Bill Amount</div><div class="detail-value">${p.bill_amount||('₹'+((p.bill&&p.bill.total)||0).toLocaleString('en-IN'))||'-'}</div></div>
+            </div>
+        </div>
+    `);
+}
+
+function renderApplicationForm() {
+    setContent(`
+        <div class="form-container">
+            <div class="form-header">
+                <div class="form-logo"><i class="fas fa-hospital-alt"></i></div>
+                <div class="form-clinic"><h1>MediCare Plus Hospital</h1><p>Advanced Healthcare with Compassion &amp; Excellence</p></div>
+            </div>
+            <div style="padding:28px;">
+                <div id="successBanner" class="success-banner"><i class="fas fa-check-circle"></i> Application Submitted Successfully!</div>
+
+                <div class="form-section">
+                    <div class="section-header"><i class="fas fa-user-injured"></i> Patient Personal Details</div>
+                    <div class="section-content">
+                        <div class="form-row">
+                            <div class="form-field"><label class="field-label required">Patient ID</label>
+                                <div class="id-row"><input class="field-input" type="text" id="fPatientId" readonly>
+                                <button class="gen-btn" onclick="generateId()"><i class="fas fa-id-card"></i> Generate</button></div>
+                            </div>
+                            <div class="form-field"><label class="field-label required">Full Name</label><input class="field-input" type="text" id="fName" placeholder="Full name"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field"><label class="field-label required">Age</label><input class="field-input" type="number" id="fAge" placeholder="Age" min="0" max="120"></div>
+                            <div class="form-field"><label class="field-label required">Marital Status</label>
+                                <select class="field-input" id="fMarital"><option>Married</option><option>Single</option><option>Other</option></select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field"><label class="field-label required">Diseases / Conditions</label><textarea class="field-input" id="fDiseases" placeholder="List conditions" rows="2"></textarea></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field"><label class="field-label required">Address</label><textarea class="field-input" id="fAddress" placeholder="Complete address" rows="2"></textarea></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label required">Aadhar Number</label>
+                                <input class="field-input" type="text" id="fAadhar" placeholder="12-digit Aadhar" maxlength="12">
+                                <span class="error-msg" id="aadharErr"></span>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label required">PAN Number</label>
+                                <input class="field-input" type="text" id="fPan" placeholder="e.g. ABCDE1234F" maxlength="10">
+                                <span class="error-msg" id="panErr"></span>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label required">Phone</label>
+                                <input class="field-input" type="tel" id="fPhone" placeholder="10-digit mobile" maxlength="10">
+                                <span class="error-msg" id="phoneErr"></span>
+                            </div>
+                            <div class="form-field"><label class="field-label required">Annual Income (₹)</label><input class="field-input" type="number" id="fIncome" placeholder="Annual income" min="0"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-header"><i class="fas fa-hospital"></i> Hospital Details</div>
+                    <div class="section-content">
+                        <div class="form-row">
+                            <div class="form-field"><label class="field-label required">Hospital Name</label><input class="field-input" type="text" id="fHospital" placeholder="Hospital name"></div>
+                            <div class="form-field"><label class="field-label">Hospital Phone</label><input class="field-input" type="tel" id="fHospitalPhone" placeholder="Hospital contact"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field"><label class="field-label required">Doctor Name</label><input class="field-input" type="text" id="fDoctor" placeholder="Doctor's name"></div>
+                            <div class="form-field"><label class="field-label">Department</label>
+                                <select class="field-input" id="fDept">
+                                    <option>General Medicine</option><option>Cardiology</option><option>Pulmonology</option>
+                                    <option>Orthopedics</option><option>Pediatrics</option><option>Gynecology</option>
+                                    <option>Neurology</option><option>Oncology</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field"><label class="field-label required">Admission Date</label><input class="field-input" type="date" id="fAdmission"></div>
+                            <div class="form-field"><label class="field-label">Discharge Date</label><input class="field-input" type="date" id="fDischarge"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field"><label class="field-label">Ward Type</label>
+                                <select class="field-input" id="fWard">
+                                    <option>General Ward</option><option>Semi-Private</option><option>Private Room</option>
+                                    <option>ICU</option><option>CCU</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-header"><i class="fas fa-file-invoice-dollar"></i> Bill Details</div>
+                    <div class="section-content">
+                        <div class="bill-breakdown">
+                            <div class="form-row">
+                                <div class="form-field"><label class="field-label">Room Charges (₹)</label><input class="field-input" type="number" id="bRoom"     value="0" min="0" oninput="calcBill()"></div>
+                                <div class="form-field"><label class="field-label">Medicine Cost (₹)</label><input class="field-input" type="number" id="bMed"      value="0" min="0" oninput="calcBill()"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-field"><label class="field-label">Doctor Fees (₹)</label><input class="field-input" type="number" id="bDoctor"   value="0" min="0" oninput="calcBill()"></div>
+                                <div class="form-field"><label class="field-label">Lab Charges (₹)</label><input class="field-input" type="number" id="bLab"       value="0" min="0" oninput="calcBill()"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-field"><label class="field-label">ICU Charges (₹)</label><input class="field-input" type="number" id="bIcu"       value="0" min="0" oninput="calcBill()"></div>
+                                <div class="form-field"><label class="field-label">OT Charges (₹)</label><input class="field-input" type="number" id="bOt"         value="0" min="0" oninput="calcBill()"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-field"><label class="field-label">Other Charges (₹)</label><input class="field-input" type="number" id="bOther"   value="0" min="0" oninput="calcBill()"></div>
+                                <div class="form-field"><label class="field-label">Discount (₹)</label><input class="field-input" type="number" id="bDiscount" value="0" min="0" oninput="calcBill()"></div>
+                            </div>
+                            <div class="bill-total-row"><span>Total Bill:</span><span id="billTotalDisplay">₹0</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn-submit" id="submitAppBtn" onclick="submitApplication()"><i class="fas fa-paper-plane"></i> Submit Application</button>
+                    <button class="btn-reset" onclick="resetForm()"><i class="fas fa-redo"></i> Reset</button>
+                </div>
+            </div>
+        </div>
+    `);
+
+    generateId();
+    document.getElementById("fAdmission").valueAsDate = new Date();
+
+    // Inline validation
+    document.getElementById("fAadhar").addEventListener("input", function() {
+        document.getElementById("aadharErr").textContent = this.value && !/^\d{12}$/.test(this.value) ? "Must be exactly 12 digits" : "";
+        this.classList.toggle("error", !!(this.value && !/^\d{12}$/.test(this.value)));
+    });
+    document.getElementById("fPan").addEventListener("input", function() {
+        const v = this.value.toUpperCase(); this.value = v;
+        document.getElementById("panErr").textContent = v && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(v) ? "Format: ABCDE1234F" : "";
+        this.classList.toggle("error", !!(v && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(v)));
+    });
+    document.getElementById("fPhone").addEventListener("input", function() {
+        document.getElementById("phoneErr").textContent = this.value && !/^\d{10}$/.test(this.value) ? "Must be 10 digits" : "";
+        this.classList.toggle("error", !!(this.value && !/^\d{10}$/.test(this.value)));
+    });
+}
+
+function generateId() {
+    const yr  = new Date().getFullYear().toString().slice(-2);
+    const num = Math.floor(10000 + Math.random() * 90000);
+    document.getElementById("fPatientId").value = `MCP${yr}${num}`;
+}
+
+function calcBill() {
+    const ids = ["bRoom","bMed","bDoctor","bLab","bIcu","bOt","bOther"];
+    const sum = ids.reduce((s,id)=>s+(parseFloat(document.getElementById(id).value)||0), 0);
+    const disc = parseFloat(document.getElementById("bDiscount").value) || 0;
+    const total = Math.max(0, sum - disc);
+    document.getElementById("billTotalDisplay").textContent = "₹" + total.toLocaleString("en-IN");
+}
+
+function resetForm() {
+    ["fName","fAge","fDiseases","fAddress","fAadhar","fPan","fPhone","fIncome",
+     "fHospital","fHospitalPhone","fDoctor"].forEach(id => { const el = document.getElementById(id); if(el) el.value=""; });
+    ["bRoom","bMed","bDoctor","bLab","bIcu","bOt","bOther","bDiscount"].forEach(id => { const el = document.getElementById(id); if(el) el.value=0; });
+    document.getElementById("billTotalDisplay").textContent = "₹0";
+    generateId();
+}
+
+async function submitApplication() {
+    const aadhar = document.getElementById("fAadhar").value.trim();
+    const pan    = document.getElementById("fPan").value.trim().toUpperCase();
+    const phone  = document.getElementById("fPhone").value.trim();
+    let valid = true;
+    if (!/^\d{12}$/.test(aadhar)) { document.getElementById("aadharErr").textContent="Must be 12 digits"; valid=false; }
+    if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) { document.getElementById("panErr").textContent="Format: ABCDE1234F"; valid=false; }
+    if (!/^\d{10}$/.test(phone)) { document.getElementById("phoneErr").textContent="Must be 10 digits"; valid=false; }
+    if (!valid) { notify("Please fix validation errors", "error"); return; }
+
+    const btn = document.getElementById("submitAppBtn");
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+    const body = {
+        patient_id:    document.getElementById("fPatientId").value,
+        name:          document.getElementById("fName").value,
+        age:           document.getElementById("fAge").value,
+        marital_status:document.getElementById("fMarital").value,
+        diseases:      document.getElementById("fDiseases").value,
+        address:       document.getElementById("fAddress").value,
+        aadhar, pan, phone,
+        income:        document.getElementById("fIncome").value,
+        hospital_name: document.getElementById("fHospital").value,
+        hospital_phone:document.getElementById("fHospitalPhone").value,
+        doctor_name:   document.getElementById("fDoctor").value,
+        department:    document.getElementById("fDept").value,
+        admission_date:document.getElementById("fAdmission").value,
+        discharge_date:document.getElementById("fDischarge").value,
+        ward_type:     document.getElementById("fWard").value,
+        room_charges:  parseFloat(document.getElementById("bRoom").value)||0,
+        medicine_cost: parseFloat(document.getElementById("bMed").value)||0,
+        doctor_fees:   parseFloat(document.getElementById("bDoctor").value)||0,
+        lab_charges:   parseFloat(document.getElementById("bLab").value)||0,
+        icu_charges:   parseFloat(document.getElementById("bIcu").value)||0,
+        ot_charges:    parseFloat(document.getElementById("bOt").value)||0,
+        other_charges: parseFloat(document.getElementById("bOther").value)||0,
+        discount:      parseFloat(document.getElementById("bDiscount").value)||0,
+    };
+
+    try {
+        await api("POST", "/patients/submit", body, AUTH.token);
+        document.getElementById("successBanner").style.display = "block";
+        notify("Application submitted successfully!");
+        setTimeout(renderPatientDashboard, 1500);
+    } catch (e) {
+        notify(e.message, "error");
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Application';
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ADMIN DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════
+async function renderAdminDashboard() {
+    setContent('<div class="loading-spinner"><i class="fas fa-spinner"></i><p style="margin-top:15px">Loading reports...</p></div>');
+    try {
+        const resp = await api("GET", "/admin/reports?status=Approved&limit=50", null, AUTH.token);
+        renderAdminTable(resp);
+    } catch (e) {
+        setContent(`<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>${e.message}</p></div>`);
+    }
+}
+
+function renderAdminTable(resp) {
+    const reports = resp.reports || [];
+    const stats   = resp.stats   || {};
+    const fmt     = n => "₹" + (n||0).toLocaleString("en-IN");
+
+    let rows = "";
+    reports.forEach(r => {
+        const bill = (r.bill||{}).total||0;
+        const ins  = r.insurance_amount || Math.round(bill*0.5);
+        const pay  = r.patient_pays     || Math.round(bill*0.5);
+        rows += `<tr>
+            <td><div class="patient-name-cell"><i class="fas fa-user-circle" style="margin-right:6px;color:#2c3e50;"></i>${r.name||'-'}</div>
+                ${r.diseases?`<small style="color:#6c757d;">${r.diseases.split(',')[0]}</small>`:''}</td>
+            <td>${r.patient_id||'-'}</td>
+            <td><span class="bill-amount">${fmt(bill)}</span></td>
+            <td><span class="ins-amount"><i class="fas fa-shield-alt"></i> ${fmt(ins)}</span><span class="disc-badge">50%</span></td>
+            <td><span class="patient-pay"><i class="fas fa-user"></i> ${fmt(pay)}</span></td>
+            <td><span class="status-badge"><i class="fas fa-check-circle"></i> Approved</span></td>
+            <td>${r.approved_date||'-'}</td>
+            <td><button class="edit-btn" onclick="openEditModal('${r.patient_email}')"><i class="fas fa-edit"></i> Edit</button></td>
+        </tr>`;
+    });
+
+    setContent(`
+        <div>
+            <div class="report-header">
+                <h2><i class="fas fa-file-alt" style="color:#ffb347;"></i> Admin Report — Approved Patients</h2>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <button class="export-btn" onclick="exportApproved()"><i class="fas fa-download"></i> Export CSV</button>
+                    <button class="export-btn" style="background:#1a4b8c;" onclick="renderAnalyticsDashboard()"><i class="fas fa-chart-bar"></i> Analytics</button>
+                </div>
+            </div>
+            <div class="info-text"><i class="fas fa-info-circle"></i><strong>Insurance Policy:</strong> Insurance covers 50% of total bill. Patient pays the remaining 50%.</div>
+            <div class="summary-stats">
+                <div class="stat-box"><div class="label"><i class="fas fa-users"></i> Approved</div><div class="value">${stats.total_approved||0}</div></div>
+                <div class="stat-box"><div class="label"><i class="fas fa-coins"></i> Total Bill</div><div class="value">${fmt(stats.total_bill)}</div></div>
+                <div class="stat-box"><div class="label"><i class="fas fa-shield-alt"></i> Insurance</div><div class="value">${fmt(stats.total_insurance)}</div></div>
+                <div class="stat-box"><div class="label"><i class="fas fa-user"></i> Patient Pays</div><div class="value">${fmt(stats.patient_pays)}</div></div>
+            </div>
+            <div class="filter-section">
+                <div class="search-box">
+                    <input type="text" id="adminSearch" placeholder="Search by name or ID..." onkeyup="if(event.key==='Enter')searchAdmin()">
+                    <button onclick="searchAdmin()"><i class="fas fa-search"></i></button>
+                </div>
+                <div class="filter-badge"><i class="fas fa-check-circle"></i> Approved only</div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Patient Name</th><th>Patient ID</th><th>Bill Amount</th><th>Insurance (50%)</th><th>Patient Pays</th><th>Status</th><th>Approved Date</th><th>Action</th></tr></thead>
+                    <tbody id="adminTbody">${rows || '<tr><td colspan="8" style="text-align:center;padding:40px;"><i class="fas fa-check-circle" style="font-size:40px;color:#27ae60;"></i><h3 style="margin-top:10px;">No approved reports</h3></td></tr>'}</tbody>
+                </table>
+            </div>
+        </div>
+    `);
+}
+
+async function searchAdmin() {
+    const q = document.getElementById("adminSearch").value.trim();
+    try {
+        const resp = await api("GET", `/admin/reports?status=Approved&search=${encodeURIComponent(q)}&limit=50`, null, AUTH.token);
+        renderAdminTable(resp);
+    } catch(e) { notify(e.message,"error"); }
+}
+
+async function exportApproved() {
+    window.location.href = `${API_BASE}/admin/export/csv`;
+}
+
+function openEditModal(patientEmail) {
+    if (!patientEmail) return notify("Patient email not found", "error");
+    document.getElementById("editModalBody").innerHTML = `
+        <form id="editForm">
+            <div class="form-group"><label>Full Name</label><input type="text" id="eName" required></div>
+            <div class="form-group"><label>Age</label><input type="number" id="eAge" required></div>
+            <div class="form-group"><label>Marital Status</label>
+                <select id="eMarital"><option>Married</option><option>Single</option><option>Other</option></select>
+            </div>
+            <div class="form-group"><label>Diseases</label><textarea id="eDiseases" rows="2"></textarea></div>
+            <div class="form-group"><label>Address</label><textarea id="eAddress" rows="2"></textarea></div>
+            <div class="form-group"><label>Aadhar Number (12 digits)</label><input type="text" id="eAadhar" maxlength="12" required></div>
+            <div class="form-group"><label>PAN Number</label><input type="text" id="ePan" maxlength="10" required></div>
+            <div class="form-group"><label>Phone (10 digits)</label><input type="tel" id="ePhone" maxlength="10" required></div>
+            <div class="form-group"><label>Annual Income (₹)</label><input type="number" id="eIncome" min="0" required></div>
+            <p id="editEmailStore" style="display:none">${patientEmail}</p>
+            <div style="display:flex;gap:12px;margin-top:20px;">
+                <button type="button" class="modal-btn" onclick="saveEdit()"><i class="fas fa-save"></i> Save Changes</button>
+                <button type="button" class="modal-btn" style="background:#6c757d;" onclick="closeModal('editPatientModal')">Cancel</button>
+            </div>
+        </form>
+    `;
+    // Pre-fill by fetching patient data
+    api("GET", `/admin/reports?search=${encodeURIComponent(patientEmail)}&status=Approved`, null, AUTH.token).then(resp => {
+        const r = (resp.reports||[]).find(x=>x.patient_email===patientEmail);
+        if (r) {
+            document.getElementById("eName").value    = r.name||"";
+            document.getElementById("eAge").value     = r.age||"";
+            document.getElementById("eMarital").value = r.marital_status||"Married";
+            document.getElementById("eDiseases").value= r.diseases||"";
+            document.getElementById("eAddress").value = r.address||"";
+            document.getElementById("eAadhar").value  = r.aadhar||"";
+            document.getElementById("ePan").value     = r.pan||"";
+            document.getElementById("ePhone").value   = r.phone||"";
+            document.getElementById("eIncome").value  = r.income||"";
+        }
+    });
+    document.getElementById("editPatientModal").style.display = "flex";
+}
+
+async function saveEdit() {
+    const email  = document.getElementById("editEmailStore").textContent.trim();
+    const aadhar = document.getElementById("eAadhar").value.trim();
+    const pan    = document.getElementById("ePan").value.trim().toUpperCase();
+    const phone  = document.getElementById("ePhone").value.trim();
+
+    if (!/^\d{12}$/.test(aadhar)) return notify("Aadhar must be 12 digits","error");
+    if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) return notify("PAN format: ABCDE1234F","error");
+    if (!/^\d{10}$/.test(phone)) return notify("Phone must be 10 digits","error");
+
+    try {
+        await api("PATCH", `/admin/patients/${encodeURIComponent(email)}`, {
+            name:          document.getElementById("eName").value,
+            age:           document.getElementById("eAge").value,
+            marital_status:document.getElementById("eMarital").value,
+            diseases:      document.getElementById("eDiseases").value,
+            address:       document.getElementById("eAddress").value,
+            aadhar, pan, phone,
+            income:        document.getElementById("eIncome").value,
+        }, AUTH.token);
+        notify("Patient details updated successfully!");
+        closeModal("editPatientModal");
+        renderAdminDashboard();
+    } catch(e) { notify(e.message, "error"); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VALIDATOR DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════
+async function renderValidatorDashboard() {
+    setContent('<div class="loading-spinner"><i class="fas fa-spinner"></i><p style="margin-top:15px">Loading reports...</p></div>');
+    try {
+        const resp = await api("GET", "/validator/reports?limit=50", null, AUTH.token);
+        renderValidatorConsole(resp.reports||[]);
+    } catch(e) {
+        setContent(`<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>${e.message}</p></div>`);
+    }
+}
+
+function renderValidatorConsole(reports) {
+    let listHtml = "";
+    reports.forEach(r => {
+        const status  = r.validator_decision
+            ? (r.validator_decision==="approved"?"Approved":"Rejected")
+            : "Pending";
+        listHtml += `
+            <div class="report-item" onclick="loadReportDetail('${r.patient_id}',this)">
+                <div class="report-avatar"><i class="fas fa-user-circle"></i></div>
+                <div class="report-info">
+                    <div class="r-name">${r.name||'Unknown'}</div>
+                    <div class="r-meta"><span>${r.patient_id||'--'}</span><span>${status}</span></div>
+                </div>
+            </div>`;
+    });
+
+    setContent(`
+        <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+                <h2 style="font-size:1.6rem;color:#1a4b8c;"><i class="fas fa-check-double"></i> Validator Console</h2>
+                <div style="background:#1a4b8c;color:white;padding:10px 22px;border-radius:50px;font-weight:600;">
+                    <i class="fas fa-database"></i> ${reports.length} Reports
+                </div>
+            </div>
+            <div class="validator-grid">
+                <div class="left-panel">
+                    <div class="panel-title"><i class="fas fa-list"></i> Patient Reports</div>
+                    <div class="filter-section" style="margin-bottom:15px;">
+                        <div class="search-box">
+                            <input type="text" id="valSearch" placeholder="Search name or ID..." onkeyup="if(event.key==='Enter')searchValidator()">
+                            <button onclick="searchValidator()"><i class="fas fa-filter"></i></button>
+                        </div>
+                    </div>
+                    <div class="report-list" id="reportList">${listHtml||'<p style="text-align:center;padding:30px;color:#728fc5;">No reports found</p>'}</div>
+                </div>
+                <div class="right-panel" id="detailPane">
+                    <div class="empty-state"><i class="fas fa-folder-open"></i><p>Select a report to review</p></div>
+                </div>
+            </div>
+        </div>
+    `);
+
+    // Auto-open first record
+    if (reports.length > 0) {
+        loadReportDetail(reports[0].patient_id, document.querySelector(".report-item"));
+    }
+}
+
+async function searchValidator() {
+    const q = document.getElementById("valSearch").value.trim();
+    try {
+        const resp = await api("GET", `/validator/reports?search=${encodeURIComponent(q)}&limit=50`, null, AUTH.token);
+        const reports = resp.reports||[];
+        let listHtml = "";
+        reports.forEach(r => {
+            const status = r.validator_decision?(r.validator_decision==="approved"?"Approved":"Rejected"):"Pending";
+            listHtml += `<div class="report-item" onclick="loadReportDetail('${r.patient_id}',this)">
+                <div class="report-avatar"><i class="fas fa-user-circle"></i></div>
+                <div class="report-info">
+                    <div class="r-name">${r.name||'Unknown'}</div>
+                    <div class="r-meta"><span>${r.patient_id||'--'}</span><span>${status}</span></div>
+                </div></div>`;
+        });
+        document.getElementById("reportList").innerHTML = listHtml || '<p style="text-align:center;padding:30px;color:#728fc5;">No results</p>';
+    } catch(e) { notify(e.message,"error"); }
+}
+
+async function loadReportDetail(patientId, el) {
+    document.querySelectorAll(".report-item").forEach(x=>x.classList.remove("active"));
+    if (el) el.classList.add("active");
+    currentReportId = patientId;
+    document.getElementById("detailPane").innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner"></i></div>';
+    try {
+        const r = await api("GET", `/validator/reports/${patientId}`, null, AUTH.token);
+        const bill = r.bill||{};
+        const decided = !!r.validator_decision;
+        const badgeClass = decided?(r.validator_decision==="approved"?"approved":"rejected"):"pending";
+        const badgeText  = decided?(r.validator_decision==="approved"?"Approved":"Rejected"):"Pending";
+
+        const f = n => "₹"+(n||0).toLocaleString("en-IN");
+        const subtotal = (bill.room_charges||0)+(bill.medicine_cost||0)+(bill.doctor_fees||0)+
+                         (bill.lab_charges||0)+(bill.icu_charges||0)+(bill.ot_charges||0)+(bill.other_charges||0);
+
+        document.getElementById("detailPane").innerHTML = `
+            <div class="detail-header">
+                <div class="patient-badge">
+                    <div class="patient-icon"><i class="fas fa-user"></i></div>
+                    <div class="patient-name-detail">
+                        <h2>${r.name||'-'}</h2>
+                        <p>ID: ${r.patient_id||''}</p>
+                    </div>
+                </div>
+                <div class="v-badge ${badgeClass}">
+                    <i class="fas fa-${badgeClass==='approved'?'check-circle':badgeClass==='rejected'?'times-circle':'clock'}"></i>
+                    ${badgeText}
+                </div>
+            </div>
+            <div class="info-boxes">
+                <div class="info-box">
+                    <div class="info-box-title"><i class="fas fa-user-injured"></i> Personal Details</div>
+                    ${infoRow("Age", r.age)}
+                    ${infoRow("Marital", r.marital_status)}
+                    ${infoRow("Diseases", r.diseases)}
+                    ${infoRow("Address", r.address)}
+                    ${infoRow("Aadhar", fmtAadhar(r.aadhar))}
+                    ${infoRow("PAN", r.pan)}
+                    ${infoRow("Phone", r.phone)}
+                    ${infoRow("Income", r.income?"₹"+parseInt(r.income).toLocaleString("en-IN"):'-')}
+                </div>
+                <div class="info-box">
+                    <div class="info-box-title"><i class="fas fa-hospital"></i> Hospital & Bill</div>
+                    ${infoRow("Hospital", r.hospital_name)}
+                    ${infoRow("Hosp Phone", r.hospital_phone)}
+                    ${infoRow("Doctor", r.doctor_name?"Dr. "+r.doctor_name:'-')}
+                    ${infoRow("Admission", r.admission_date?new Date(r.admission_date).toLocaleDateString("en-IN"):'-')}
+                    ${infoRow("Discharge", r.discharge_date?new Date(r.discharge_date).toLocaleDateString("en-IN"):'-')}
+                    ${infoRow("Department", r.department)}
+                    ${infoRow("Ward", r.ward_type)}
+                </div>
+            </div>
+            <div class="info-boxes">
+                <div class="info-box">
+                    <div class="info-box-title"><i class="fas fa-file-invoice-dollar"></i> Bill Breakdown</div>
+                    ${infoRow("Room",    f(bill.room_charges))}
+                    ${infoRow("Medicine",f(bill.medicine_cost))}
+                    ${infoRow("Doctor",  f(bill.doctor_fees))}
+                    ${infoRow("Lab",     f(bill.lab_charges))}
+                    ${infoRow("ICU",     f(bill.icu_charges))}
+                    ${infoRow("OT",      f(bill.ot_charges))}
+                    ${infoRow("Other",   f(bill.other_charges))}
+                </div>
+                <div class="info-box">
+                    <div class="info-box-title"><i class="fas fa-calculator"></i> Summary</div>
+                    ${infoRow("Subtotal", f(subtotal))}
+                    ${infoRow("Discount", "-"+f(bill.discount||0))}
+                    <div class="info-row" style="border-bottom:2px solid #1a4b8c;">
+                        <span class="i-label" style="font-weight:800;">TOTAL</span>
+                        <span class="i-value" style="font-weight:800;color:#0f8130;">${f(bill.total)}</span>
+                    </div>
+                    ${infoRow("Status", r.payment_status||"Pending")}
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="approve-btn" id="approveBtn" onclick="makeDecision('${patientId}','approved')" ${decided?'disabled':''}>
+                    <i class="fas fa-stamp"></i> Approve
+                </button>
+                <button class="reject-btn" id="rejectBtn" onclick="makeDecision('${patientId}','rejected')" ${decided?'disabled':''}>
+                    <i class="fas fa-times-circle"></i> Reject
+                </button>
+            </div>
+        `;
+    } catch(e) {
+        document.getElementById("detailPane").innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>${e.message}</p></div>`;
+    }
+}
+
+async function makeDecision(patientId, decision) {
+    document.getElementById("approveBtn").disabled = true;
+    document.getElementById("rejectBtn").disabled  = true;
+    try {
+        const result = await api("POST", `/validator/reports/${patientId}/decision`, { decision }, AUTH.token);
+        notify(`Report ${decision} successfully! Email sent to patient.`, decision==="approved"?"success":"warn");
+        // Refresh
+        await renderValidatorDashboard();
+    } catch(e) {
+        notify(e.message, "error");
+        document.getElementById("approveBtn").disabled = false;
+        document.getElementById("rejectBtn").disabled  = false;
+    }
+}
+
+function infoRow(label, value) {
+    return `<div class="info-row"><span class="i-label">${label}</span><span class="i-value">${value||'-'}</span></div>`;
+}
+function fmtAadhar(a) { return a ? a.replace(/(\d{4})(\d{4})(\d{4})/,'$1 $2 $3') : '-'; }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ANALYTICS DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════
+async function renderAnalyticsDashboard() {
+    setContent('<div class="loading-spinner"><i class="fas fa-spinner"></i><p style="margin-top:15px">Loading analytics...</p></div>');
+    try {
+        const d = await api("GET", "/analytics/summary", null, AUTH.token);
+        const k = d.kpis||{};
+        const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+        setContent(`
+            <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:22px;">
+                    <h2 style="font-size:1.8rem;color:#1a4b8c;"><i class="fas fa-chart-line"></i> Analytics Dashboard</h2>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="export-btn" onclick="window.location.href='${API_BASE}/analytics/export/csv'"><i class="fas fa-file-csv"></i> Export CSV</button>
+                        ${AUTH.role==="admin"?`<button class="export-btn" style="background:#1a4b8c;" onclick="renderAdminDashboard()"><i class="fas fa-arrow-left"></i> Back to Reports</button>`:''}
+                    </div>
+                </div>
+                <div class="kpi-grid">
+                    <div class="kpi-card"><div class="kpi-value">${k.total_patients||0}</div><div class="kpi-label">Total Patients</div></div>
+                    <div class="kpi-card"><div class="kpi-value">${k.approved||0}</div><div class="kpi-label">Approved</div></div>
+                    <div class="kpi-card"><div class="kpi-value">${k.pending||0}</div><div class="kpi-label">Pending</div></div>
+                    <div class="kpi-card"><div class="kpi-value">${k.rejected||0}</div><div class="kpi-label">Rejected</div></div>
+                    <div class="kpi-card"><div class="kpi-value">₹${((k.total_bill||0)/100000).toFixed(1)}L</div><div class="kpi-label">Total Bill</div></div>
+                    <div class="kpi-card"><div class="kpi-value">₹${Math.round(k.avg_bill||0).toLocaleString('en-IN')}</div><div class="kpi-label">Avg Bill</div></div>
+                </div>
+                <div class="charts-row">
+                    <div class="chart-box"><div class="chart-title"><i class="fas fa-calendar-alt"></i> Monthly Trends</div><canvas id="monthlyChart"></canvas></div>
+                    <div class="chart-box"><div class="chart-title"><i class="fas fa-chart-pie"></i> Status Distribution</div><canvas id="statusChart"></canvas></div>
+                </div>
+                <div class="charts-row">
+                    <div class="chart-box"><div class="chart-title"><i class="fas fa-hospital"></i> Top Departments</div><canvas id="deptChart"></canvas></div>
+                    <div class="chart-box"><div class="chart-title"><i class="fas fa-lightbulb"></i> Key Insights</div>
+                        <ul class="insights-list">
+                            <li><span>✅ Approval Rate</span><strong>${k.total_patients?Math.round(k.approved/k.total_patients*100):0}%</strong></li>
+                            <li><span>📊 Rejection Rate</span><strong>${k.total_patients?Math.round(k.rejected/k.total_patients*100):0}%</strong></li>
+                            <li><span>⏳ Avg Processing</span><strong>2.5 days</strong></li>
+                            <li><span>🏥 Top Department</span><strong>${Object.keys(d.department_distribution||{})[0]||'N/A'}</strong></li>
+                            <li><span>💰 Total Bill Value</span><strong>₹${((k.total_bill||0)/100000).toFixed(1)}L</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `);
+
+        // Destroy existing charts
+        if (monthlyChart) monthlyChart.destroy();
+        if (statusChart)  statusChart.destroy();
+        if (deptChart)    deptChart.destroy();
+
+        const mt = d.monthly_trend||{submitted:[],approved:[]};
+        monthlyChart = new Chart(document.getElementById("monthlyChart"), {
+            type: "line",
+            data: { labels: months,
+                datasets: [
+                    { label:"Submitted", data: mt.submitted, borderColor:"#1a4b8c", backgroundColor:"rgba(26,75,140,0.1)", fill:true, tension:0.3 },
+                    { label:"Approved",  data: mt.approved,  borderColor:"#2e7d32", backgroundColor:"rgba(46,125,50,0.05)",  fill:true, tension:0.3 },
+                ]},
+            options: { responsive:true, plugins:{ legend:{ position:"top" } } }
+        });
+
+        const sd = d.status_distribution||{};
+        statusChart = new Chart(document.getElementById("statusChart"), {
+            type: "doughnut",
+            data: { labels:["Approved","Pending","Rejected"],
+                datasets:[{ data:[sd.approved||0,sd.pending||0,sd.rejected||0], backgroundColor:["#2e7d32","#f39c12","#c62828"], borderWidth:0 }]},
+            options: { responsive:true, plugins:{ legend:{ position:"bottom" } } }
+        });
+
+        const dd = d.department_distribution||{};
+        deptChart = new Chart(document.getElementById("deptChart"), {
+            type: "bar",
+            data: { labels:Object.keys(dd), datasets:[{ label:"Patients", data:Object.values(dd), backgroundColor:"#1a4b8c", borderRadius:6 }]},
+            options: { responsive:true, indexAxis:"y", plugins:{ legend:{ display:false } } }
+        });
+
+    } catch(e) {
+        setContent(`<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>${e.message}</p></div>`);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════════════════════
+function setContent(html) { document.getElementById("dynamicContent").innerHTML = html; }
+
+function showModal(id) {
+    closeAllModals();
+    document.getElementById(id).style.display = "flex";
+}
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
+function closeAllModals() {
+    document.querySelectorAll(".modal").forEach(m => m.style.display = "none");
+}
+window.onclick = e => { if (e.target.classList.contains("modal")) e.target.style.display = "none"; };
+
+function fillLogin(fieldId, value) { document.getElementById(fieldId).value = value; }
+
+function notify(msg, type="success") {
+    const el  = document.getElementById("notification");
+    const txt = document.getElementById("notifText");
+    txt.textContent = msg;
+    el.className = `notification ${type}`;
+    el.style.display = "flex";
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.style.display = "none", 3500);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+window.onload = function() {
+    if (AUTH.token && AUTH.role) {
+        showDashboard();
+    } else {
+        showLanding();
+    }
+};
+</script>
+</body>
+</html>
