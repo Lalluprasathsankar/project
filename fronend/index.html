@@ -62,11 +62,6 @@
         .modal-footer { margin-top: 20px; text-align: center; color: #666; font-size: 0.9rem; }
         .modal-footer a { color: #1a2980; text-decoration: none; font-weight: 600; cursor: pointer; }
         .modal-btn.secondary { background: linear-gradient(to right, #26a69a, #00897b); }
-        .demo-login { margin-top: 25px; padding-top: 20px; border-top: 1px solid #e0e0e0; }
-        .demo-login p { color: #666; font-size: 14px; margin-bottom: 10px; }
-        .demo-users { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .demo-user { background: #f5f5f5; padding: 10px; border-radius: 8px; font-size: 13px; color: #555; cursor: pointer; transition: 0.3s; }
-        .demo-user:hover { background: #e8e8e8; }
         footer { background: #f8f9fa; padding: 25px; text-align: center; color: #666; border-top: 1px solid #e0e0e0; }
         .footer-content { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: 0 auto; flex-wrap: wrap; gap: 15px; }
         .footer-links { display: flex; gap: 20px; }
@@ -254,7 +249,7 @@
             <p>Our secure platform provides dedicated access points for patients, validators, administrators, and data analysts to manage healthcare access and analytics efficiently.</p>
             <div class="system-info">
                 <h4><i class="fas fa-info-circle"></i> System Overview</h4>
-                <p>Four distinct roles with JWT-secured endpoints backed by MongoDB.</p>
+                <p>Secure role-based access with JWT-protected endpoints backed by MongoDB.</p>
                 <div class="info-grid">
                     <div class="info-item"><i class="fas fa-user-injured"></i><span>Patient Access Portal</span></div>
                     <div class="info-item"><i class="fas fa-user-check"></i><span>Validator Authentication</span></div>
@@ -314,20 +309,11 @@
         </div>
         <div class="modal-body">
             <div class="form-group"><label>Full Name (for new account)</label><input type="text" id="patientName" placeholder="Enter your full name"></div>
-            <div class="form-group"><label>Email Address</label><input type="email" id="patientEmail" value="patient1@example.com" placeholder="Enter email"></div>
-            <div class="form-group"><label>Password</label><input type="password" id="patientPassword" value="password123" placeholder="Enter password"></div>
+            <div class="form-group"><label>Email Address</label><input type="email" id="patientEmail" placeholder="Enter email"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="patientPassword" placeholder="Enter password"></div>
             <button class="modal-btn" id="patientLoginBtn" onclick="loginPatient()"><i class="fas fa-sign-in-alt"></i> Login to Patient Portal</button>
             <button class="modal-btn secondary" id="patientRegisterBtn" onclick="registerPatient()"><i class="fas fa-user-plus"></i> Create Account as Patient</button>
             <div class="modal-footer">New here? Enter your details and click <strong>Create Account as Patient</strong>.</div>
-            <div class="demo-login">
-                <p><i class="fas fa-info-circle"></i> Demo accounts (password: password123):</p>
-                <div class="demo-users">
-                    <div class="demo-user" onclick="fillLogin('patientEmail','patient1@example.com')"><i class="fas fa-user"></i> patient1@example.com<br><small>New user</small></div>
-                    <div class="demo-user" onclick="fillLogin('patientEmail','patient2@example.com')"><i class="fas fa-user"></i> patient2@example.com<br><small>Submitted</small></div>
-                    <div class="demo-user" onclick="fillLogin('patientEmail','patient3@example.com')"><i class="fas fa-user"></i> patient3@example.com<br><small>Under review</small></div>
-                    <div class="demo-user" onclick="fillLogin('patientEmail','patient4@example.com')"><i class="fas fa-user"></i> patient4@example.com<br><small>Approved</small></div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -340,10 +326,9 @@
             <span class="close-modal" onclick="closeModal('validatorModal')">&times;</span>
         </div>
         <div class="modal-body">
-            <div class="form-group"><label>Validator ID</label><input type="text" id="validatorId" value="VAL001" placeholder="e.g. VAL001"></div>
-            <div class="form-group"><label>Password</label><input type="password" id="validatorPassword" value="password123" placeholder="Password"></div>
+            <div class="form-group"><label>Validator ID</label><input type="text" id="validatorId" placeholder="Enter validator ID"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="validatorPassword" placeholder="Password"></div>
             <button class="modal-btn" style="background:linear-gradient(to right,#0b5f9e,#26d0ce);" id="validatorLoginBtn" onclick="loginValidator()"><i class="fas fa-sign-in-alt"></i> Login as Validator</button>
-            <div class="demo-login"><p><i class="fas fa-info-circle"></i> Demo: VAL001 / password123</p></div>
         </div>
     </div>
 </div>
@@ -356,10 +341,9 @@
             <span class="close-modal" onclick="closeModal('adminModal')">&times;</span>
         </div>
         <div class="modal-body">
-            <div class="form-group"><label>Username</label><input type="text" id="adminUsername" value="admin" placeholder="Admin username"></div>
-            <div class="form-group"><label>Password</label><input type="password" id="adminPassword" value="admin123" placeholder="Admin password"></div>
+            <div class="form-group"><label>Username</label><input type="text" id="adminUsername" placeholder="Admin username"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="adminPassword" placeholder="Admin password"></div>
             <button class="modal-btn" style="background:linear-gradient(to right,#c0392b,#e74c3c);" id="adminLoginBtn" onclick="loginAdmin()"><i class="fas fa-sign-in-alt"></i> Login as Administrator</button>
-            <div class="demo-login"><p><i class="fas fa-info-circle"></i> Demo: admin / admin123</p></div>
         </div>
     </div>
 </div>
@@ -372,10 +356,9 @@
             <span class="close-modal" onclick="closeModal('analystModal')">&times;</span>
         </div>
         <div class="modal-body">
-            <div class="form-group"><label>Username</label><input type="text" id="analystUsername" value="admin" placeholder="Admin username"></div>
-            <div class="form-group"><label>Password</label><input type="password" id="analystPassword" value="admin123" placeholder="Admin password"></div>
+            <div class="form-group"><label>Username</label><input type="text" id="analystUsername" placeholder="Admin username"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="analystPassword" placeholder="Admin password"></div>
             <button class="modal-btn" style="background:linear-gradient(to right,#2c3e50,#1e2b3a);" id="analystLoginBtn" onclick="loginAnalyst()"><i class="fas fa-sign-in-alt"></i> Open Analytics Dashboard</button>
-            <div class="demo-login"><p><i class="fas fa-info-circle"></i> Demo: admin / admin123</p></div>
         </div>
     </div>
 </div>
