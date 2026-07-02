@@ -988,5 +988,5 @@ def mongo_error(exc):
 # ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    log.info("Starting PAM server on port %s  |  debug=%s", cfg.PORT, cfg.DEBUG)
-    app.run(host="0.0.0.0", port=cfg.PORT, debug=cfg.DEBUG)
+    log.info("Starting PAM server on port %s  |  debug=%s", cfg.PORT, True)
+    app.run(host="0.0.0.0", port=cfg.PORT, debug=True)
