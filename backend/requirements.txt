@@ -1,28 +1,8 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# Patient Access Management & Analytics — Python Dependencies
-# Install: pip install -r requirements.txt
-# Python  : 3.8+ (compatible with pip 21.x)
-# ─────────────────────────────────────────────────────────────────────────────
-
-# Web framework
-Flask==2.2.5
-Werkzeug==2.2.3
-
-# MongoDB driver
-pymongo==4.3.3
-
-# Password hashing
-bcrypt==4.0.1
-
-# JWT authentication
-PyJWT==2.7.0
-
-# Environment variable management
-python-dotenv==0.21.1
-
-# CORS support (for decoupled frontend)
-Flask-Cors==3.0.10
-
-# Production WSGI server
-gunicorn==20.1.0
-setuptools<82.0.0
+Flask==3.0.3
+Werkzeug==3.0.6
+pymongo==4.8.0
+bcrypt==4.2.0
+PyJWT==2.9.0
+python-dotenv==1.0.1
+Flask-Cors==4.0.1
+gunicorn==22.0.0

@@ -93,166 +93,58 @@ def get_db():
 
 
 def _bootstrap_db(db) -> None:
-    """Idempotently create indexes and seed demo data on first run."""
+    """Idempotently create indexes and optional production users."""
     # ── indexes ───────────────────────────────────────────────────────────────
-    db.users.create_index("email",        unique=True, sparse=True)
+    db.users.create_index("email", unique=True, sparse=True)
     db.users.create_index("validator_id", unique=True, sparse=True)
-    db.users.create_index("username",     unique=True, sparse=True)
+    db.users.create_index("username", unique=True, sparse=True)
     db.patients.create_index("patient_id", unique=True)
-    db.patients.create_index("email",      unique=True)
+    db.patients.create_index("email", unique=True)
     db.patients.create_index("stage")
     db.patients.create_index([("name", ASCENDING)])
-    db.reports.create_index("patient_id",  unique=True)
+    db.reports.create_index("patient_id", unique=True)
     db.reports.create_index("payment_status")
     db.reports.create_index([("created_at", DESCENDING)])
 
-    # ── seed demo users ───────────────────────────────────────────────────────
-    _upsert_patient_user(db, "patient1@example.com", "New Patient",      "MCP241000")
-    _upsert_patient_user(db, "patient2@example.com", "Rajan Menon",      "MCP241001")
-    _upsert_patient_user(db, "patient3@example.com", "Lakshmi Krishnan", "MCP242057")
-    _upsert_patient_user(db, "patient4@example.com", "Karthik Raja",     "MCP249888")
+    # Create initial staff accounts only when credentials are explicitly provided
+    # in the hosting environment. This keeps production databases free of
+    # sample users and default passwords.
+    _create_staff_user(
+        db,
+        role="validator",
+        lookup_field="validator_id",
+        identifier=os.getenv("INITIAL_VALIDATOR_ID"),
+        password=os.getenv("INITIAL_VALIDATOR_PASSWORD"),
+    )
+    _create_staff_user(
+        db,
+        role="admin",
+        lookup_field="username",
+        identifier=os.getenv("INITIAL_ADMIN_USERNAME"),
+        password=os.getenv("INITIAL_ADMIN_PASSWORD"),
+    )
 
-    if not db.users.find_one({"validator_id": "VAL001"}):
-        db.users.insert_one({
-            "validator_id":  "VAL001",
-            "role":          "validator",
-            "password_hash": _hash("password123"),
-            "created_at":    _now(),
-        })
-
-    if not db.users.find_one({"username": "admin"}):
-        db.users.insert_one({
-            "username":      "admin",
-            "role":          "admin",
-            "password_hash": _hash("admin123"),
-            "created_at":    _now(),
-        })
-
-    # ── seed demo submissions ─────────────────────────────────────────────────
-    _seed_submissions(db)
-    log.info("Database bootstrapped successfully.")
+    log.info("Database indexes bootstrapped successfully.")
 
 
-def _upsert_patient_user(db, email: str, name: str, patient_id: str) -> None:
-    if not db.users.find_one({"email": email}):
-        db.users.insert_one({
-            "email":         email,
-            "name":          name,
-            "patient_id":    patient_id,
-            "role":          "patient",
-            "password_hash": _hash("password123"),
-            "created_at":    _now(),
-        })
-
-
-def _seed_submissions(db) -> None:
-    seed = [
-        {
-            "email": "patient2@example.com",
-            "patient_id": "MCP241001",
-            "name": "Rajan Menon",
-            "stage": "submitted",
-            "submitted_date": "24 Feb 2025",
-            "hospital": "City Hospital, Bangalore",
-            "hospital_phone": "080-23456789",
-            "doctor": "Dr. Priya Sharma",
-            "bill_amount": "₹48,500",
-            "age": 45, "diseases": "Diabetes, Hypertension",
-            "address": "12 MG Road, Bangalore",
-            "aadhar": "123412341234", "pan": "ABCDE1234F",
-            "phone": "9876543210", "marital_status": "Married", "income": 850000,
-            "hospital_name": "City Hospital", "doctor_name": "Priya Sharma",
-            "admission_date": "2025-02-10", "discharge_date": "2025-02-15",
-            "department": "General Medicine", "ward_type": "General Ward",
-            "payment_status": "Pending",
-            "bill": {"total": 48500, "room_charges": 15000, "medicine_cost": 12000,
-                     "doctor_fees": 8000, "lab_charges": 5000, "icu_charges": 0,
-                     "ot_charges": 0, "other_charges": 8500, "insurance": 0, "discount": 500},
-        },
-        {
-            "email": "patient3@example.com",
-            "patient_id": "MCP242057",
-            "name": "Lakshmi Krishnan",
-            "stage": "review",
-            "submitted_date": "23 Feb 2025", "review_date": "24 Feb 2025",
-            "hospital": "Apollo Hospital, Chennai",
-            "hospital_phone": "044-98765432",
-            "doctor": "Dr. Suresh Kumar",
-            "bill_amount": "₹1,25,000",
-            "age": 32, "diseases": "Asthma, Allergy",
-            "address": "34 Anna Nagar, Chennai",
-            "aadhar": "432143214321", "pan": "XYZAB7890D",
-            "phone": "9123456780", "marital_status": "Single", "income": 250000,
-            "hospital_name": "Apollo Hospital", "doctor_name": "Suresh Kumar",
-            "admission_date": "2025-02-14", "discharge_date": "2025-02-20",
-            "department": "Pulmonology", "ward_type": "Private Room",
-            "payment_status": "Pending",
-            "bill": {"total": 125000, "room_charges": 35000, "medicine_cost": 25000,
-                     "doctor_fees": 20000, "lab_charges": 15000, "icu_charges": 0,
-                     "ot_charges": 20000, "other_charges": 10000, "insurance": 0, "discount": 0},
-        },
-        {
-            "email": "patient4@example.com",
-            "patient_id": "MCP249888",
-            "name": "Karthik Raja",
-            "stage": "approved",
-            "submitted_date": "20 Feb 2025", "review_date": "21 Feb 2025",
-            "approved_date": "22 Feb 2025",
-            "hospital": "Fortis Hospital, Bangalore",
-            "hospital_phone": "080-34567890",
-            "doctor": "Dr. Meera Nair",
-            "bill_amount": "₹95,000",
-            "age": 55, "diseases": "Heart Disease",
-            "address": "56 Church Street, Bangalore",
-            "aadhar": "567856785678", "pan": "PQRST5678G",
-            "phone": "9988776655", "marital_status": "Married", "income": 1800000,
-            "hospital_name": "Fortis Hospital", "doctor_name": "Meera Nair",
-            "admission_date": "2025-02-15", "discharge_date": "2025-02-22",
-            "department": "Cardiology", "ward_type": "ICU",
-            "payment_status": "Approved",
-            "bill": {"total": 95000, "room_charges": 25000, "medicine_cost": 20000,
-                     "doctor_fees": 15000, "lab_charges": 10000, "icu_charges": 15000,
-                     "ot_charges": 0, "other_charges": 10000, "insurance": 0, "discount": 0},
-        },
-    ]
-    for s in seed:
-        if not db.patients.find_one({"email": s["email"]}):
-            db.patients.insert_one({**s, "created_at": _now(), "updated_at": _now()})
-
-    for patient in db.patients.find({"stage": {"$ne": "new"}}):
-        if not db.reports.find_one({"patient_id": patient["patient_id"]}):
-            db.reports.insert_one({
-                "patient_id":         patient["patient_id"],
-                "patient_email":      patient["email"],
-                "name":               patient["name"],
-                "age":                patient.get("age"),
-                "diseases":           patient.get("diseases"),
-                "address":            patient.get("address"),
-                "aadhar":             patient.get("aadhar"),
-                "pan":                patient.get("pan"),
-                "phone":              patient.get("phone"),
-                "marital_status":     patient.get("marital_status"),
-                "income":             patient.get("income"),
-                "hospital_name":      patient.get("hospital_name"),
-                "hospital_phone":     patient.get("hospital_phone"),
-                "doctor_name":        patient.get("doctor_name"),
-                "admission_date":     patient.get("admission_date"),
-                "discharge_date":     patient.get("discharge_date"),
-                "department":         patient.get("department"),
-                "ward_type":          patient.get("ward_type"),
-                "payment_status":     patient.get("payment_status", "Pending"),
-                "validator_decision": (
-                    "approved" if patient["stage"] == "approved"
-                    else "rejected" if patient["stage"] == "rejected"
-                    else None
-                ),
-                "bill":           patient.get("bill", {}),
-                "stage":          patient["stage"],
-                "submitted_date": patient.get("submitted_date"),
-                "approved_date":  patient.get("approved_date"),
-                "created_at":     _now(),
-                "updated_at":     _now(),
-            })
+def _create_staff_user(db, *, role: str, lookup_field: str, identifier: Optional[str], password: Optional[str]) -> None:
+    """Create a staff user when both identifier and password are configured."""
+    identifier = (identifier or "").strip()
+    password = password or ""
+    if not identifier or not password:
+        return
+    if len(password) < 8:
+        log.warning("Skipping %s bootstrap user: password must be at least 8 characters.", role)
+        return
+    if db.users.find_one({lookup_field: identifier, "role": role}):
+        return
+    db.users.insert_one({
+        lookup_field: identifier,
+        "role": role,
+        "password_hash": _hash(password),
+        "created_at": _now(),
+    })
+    log.info("Created initial %s user %s from environment.", role, identifier)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -988,5 +880,5 @@ def mongo_error(exc):
 # ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    log.info("Starting PAM server on port %s  |  debug=%s", cfg.PORT, True)
-    app.run(host="0.0.0.0", port=cfg.PORT, debug=True)
+    log.info("Starting PAM server on port %s  |  debug=%s", cfg.PORT, cfg.DEBUG)
+    app.run(host="0.0.0.0", port=cfg.PORT, debug=cfg.DEBUG)
