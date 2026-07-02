@@ -3,7 +3,7 @@
 # Install: pip install -r requirements.txt
 # Python  : 3.8+ (compatible with pip 21.x)
 # ─────────────────────────────────────────────────────────────────────────────
---upgrade pip
+
 # Web framework
 Flask==2.2.5
 Werkzeug==2.2.3
