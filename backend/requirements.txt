@@ -25,3 +25,5 @@ Flask-Cors==3.0.10
 
 # Production WSGI server
 gunicorn==20.1.0
+
+pkg_resources
